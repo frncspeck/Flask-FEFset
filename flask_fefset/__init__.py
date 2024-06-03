@@ -3,7 +3,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 
 class FEFset:
     def __init__(
-        self, app=None, frontend='bootstrap5', db=None, url_prefix='/front',
+        self, app=None, frontend='bootstrap4', db=None, url_prefix='/front',
         include_footer=False, test=False
     ):
         """
@@ -40,7 +40,7 @@ class FEFset:
             "navconfig": app.config.get_namespace('FEFSET_')
         })
         app.register_blueprint(self.blueprint, url_prefix=self.url_prefix)
-        app.extensions['FEFset'] = self
+        app.extensions['fefset'] = self
 
     def fef_index(self):
         flash(f"'{self.frontend}' active")
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     fef.nav_menu.append({'name':'Home','url':'/test/blabla/yadayada'})
     fef.init_app(app)
     fef.nav_menu.append({'name':'Admin','url':'/test/yadayada/blabla'})
-    app.extensions['FEFset'].add_menu_entry('Admin','/test/yadayada/blabla','Submenu')
+    app.extensions['fefset'].add_menu_entry('Admin','/test/yadayada/blabla','Submenu')
     @app.route('/')
     def index():
         return redirect('/front')
