@@ -41,12 +41,12 @@
     <ul class="navbar-nav ml-md-auto">
         {% if cart_url %}<a class="nav-link" href="{{ cart_url }}"><i class="bi bi-cart-plus-fill"></i></a>{% endif %}
         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-          {% if user_welcome %}
-               {{ user_welcome }}
-          {% else %}{{ account_welcome }}{% endif %}
+          {% if navconfig.side_menu_name_function %}
+               {{ navconfig.side_menu_name_function() }}
+          {% else %}{{ navconfig.side_menu_name }}{% endif %}
         </a>
           <div class="dropdown-menu dropdown-menu-md-right">
-          {% for sub_nav_item in right_nav_items %}
+          {% for sub_nav_item in side_nav_items %}
             {% if sub_nav_item.name == '---' %}
             <div class="dropdown-divider"></div>
             {% else %}

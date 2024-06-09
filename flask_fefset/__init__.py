@@ -16,6 +16,8 @@ class FEFset:
         """
         self.frontend = frontend
         self.nav_menu = []
+        self.side_menu = []
+        self.settings = {'side_menu_name':''}
         self.db = db
         self.include_footer = include_footer
         self.url_prefix = url_prefix
@@ -36,9 +38,14 @@ class FEFset:
     def init_app(self, app):
         app.jinja_env.globals.update({
             "nav_items": self.nav_menu,
+            "side_nav_items": self.side_menu,
             "include_footer":  self.include_footer,
-            "navconfig": app.config.get_namespace('FEFSET_')
+            "navconfig": self.settings
+            #"navconfig": app.config.get_namespace('FEFSET_')
         })
+        if self.frontend.startswith('bootstrap'):
+            from flask_bootstrap import Bootstrap
+            self.bootstrap = Bootstrap(app)
         app.register_blueprint(self.blueprint, url_prefix=self.url_prefix)
         app.extensions['fefset'] = self
 
@@ -60,6 +67,9 @@ class FEFset:
 
     def add_submenu(self, name, url=None):
         self.nav_menu.append({'name':name,'url':url,'nav_items':[]})
+
+    def add_side_menu_entry(self, name, url):
+        self.side_menu.append({'name':name,'url':url})
 
 if __name__ == '__main__':
     from flask import Flask
