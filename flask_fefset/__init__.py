@@ -86,31 +86,28 @@ class FEFset:
 
     def nav_menu_protected(self):
         if self.role_protection:
-            from flask_login import current_user
+            from flask_iam.utils import check_user_role
             nav_menu = [
                 {
                     'name': nmi['name'], 'url': nmi['url'], 'role': nmi['role'],
                     'nav_items': [
                         snmi for snmi in nmi['nav_items']
-                        if (not snmi['role']) or
-                        (current_user.is_authenticated and current_user.role == snmi['role'])
+                        if (not snmi['role']) or check_user_role(snmi['role'])
                     ]
                 } if 'nav_items' in nmi
                 else nmi
                 for nmi in self.nav_menu
-                if (not nmi['role']) or
-                (current_user.is_authenticated and current_user.role == nmi['role'])
+                if (not nmi['role']) or check_user_role(nmi['role'])
             ]
         else: nav_menu = self.nav_menu
         return nav_menu
 
     def side_menu_protected(self):
         if self.role_protection:
-            from flask_login import current_user
+            from flask_iam.utils import check_user_role
             side_menu = [
                 smi for smi in self.side_menu
-                if (not smi['role']) or
-                (current_user.is_authenticated and current_user.role == smi['role'])
+                if (not smi['role']) or check_user_role(smi['role'])
             ]
         else: side_menu = self.side_menu
         return side_menu
