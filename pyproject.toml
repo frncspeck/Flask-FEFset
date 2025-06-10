@@ -10,3 +10,11 @@ dependencies = [
   'Flask==3.0.3',
   'Flask-Bootstrap'
 ]
+
+[project.optional-dependencies]
+login = ['Flask-IAM']
+dev = [
+  'build',
+  'twine',
+]
+

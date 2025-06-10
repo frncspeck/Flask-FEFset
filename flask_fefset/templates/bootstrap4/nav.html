@@ -6,7 +6,7 @@
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-    {% for nav_item in nav_items %}
+    {% for nav_item in nav_items() %}
       {% if 'nav_items' not in nav_item %}
       <li {% if request.path == '{{ nav_item.url }}' %}class="nav-item active"{% else %}class="nav-item"{% endif %}>
         <a class="nav-link" href="{{ nav_item.url }}">
@@ -46,7 +46,7 @@
           {% else %}{{ navconfig.side_menu_name }}{% endif %}
         </a>
           <div class="dropdown-menu dropdown-menu-md-right">
-          {% for sub_nav_item in side_nav_items %}
+          {% for sub_nav_item in side_nav_items() %}
             {% if sub_nav_item.name == '---' %}
             <div class="dropdown-divider"></div>
             {% else %}

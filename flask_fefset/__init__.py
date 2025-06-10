@@ -3,14 +3,28 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 
 class FEFset:
     def __init__(
-        self, app=None, frontend='bootstrap4', db=None, url_prefix='/front',
-        include_footer=False, test=False
+        self, app=None, frontend='bootstrap4', url_prefix='/front',
+            include_footer=False, role_protection=False, test=False
     ):
         """
         App configuration keys that should be set:
             FEFSET_LOGO_URL: relative url to the logo that should be displayed
             FEFSET_BRAND_NAME: brand name
 
+        Args:
+            app: flask.Flask
+                The flask application
+            frontend: str
+                The frontend frameworks, choose between bootstrap4 and bootstrap5
+            url_prefix: str
+                The blueprint prefix, TODO check if it can be removed
+            include_footer: bool
+                Include footer in page
+            test: bool
+                If True, only for testing
+            role_protection: bool
+                If True, enable role protection. Requires Flask-IAM
+        
         Example:
             app.config['FEFSET_BRAND_NAME'] = 'THE BRAND'
         """
@@ -18,11 +32,9 @@ class FEFset:
         self.nav_menu = []
         self.side_menu = []
         self.settings = {'side_menu_name':''}
-        self.db = db
         self.include_footer = include_footer
         self.url_prefix = url_prefix
-        #if self.db:
-        #    self.models = FModels(db)
+        self.role_protection = role_protection
 
         self.blueprint = Blueprint(
             'fef_blueprint', __name__,
@@ -37,10 +49,11 @@ class FEFset:
 
     def init_app(self, app):
         app.jinja_env.globals.update({
-            "nav_items": self.nav_menu,
-            "side_nav_items": self.side_menu,
+            "nav_items": self.nav_menu_protected,
+            "side_nav_items": self.side_menu_protected,
             "include_footer":  self.include_footer,
-            "navconfig": self.settings
+            "navconfig": self.settings,
+            "role_protection": self.role_protection
             #"navconfig": app.config.get_namespace('FEFSET_')
         })
         if self.frontend.startswith('bootstrap'):
@@ -53,7 +66,7 @@ class FEFset:
         flash(f"'{self.frontend}' active")
         return render_template('base.html', title='Flask-FEFset for setting your frontend')
 
-    def add_menu_entry(self, name, url, submenu=None):
+    def add_menu_entry(self, name, url, submenu=None, role=False):
         if submenu:
             for sm_ix, nav_item in enumerate(self.nav_menu):
                 if nav_item['name'] == submenu:
@@ -63,26 +76,41 @@ class FEFset:
                 sm_ix+=1
             nav_menu = self.nav_menu[sm_ix]['nav_items']
         else: nav_menu = self.nav_menu
-        nav_menu.append({'name':name,'url':url})
+        nav_menu.append({'name':name,'url':url,'role':role})
 
-    def add_submenu(self, name, url=None):
-        self.nav_menu.append({'name':name,'url':url,'nav_items':[]})
+    def add_submenu(self, name, url=None, role=False):
+        self.nav_menu.append({'name':name,'url':url,'role':role,'nav_items':[]})
 
-    def add_side_menu_entry(self, name, url):
-        self.side_menu.append({'name':name,'url':url})
+    def add_side_menu_entry(self, name, url, role=False):
+        self.side_menu.append({'name':name,'url':url,'role':role})
 
-if __name__ == '__main__':
-    from flask import Flask
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.urandom(12).hex()
-    app.config['FEFSET_BRAND_NAME'] = 'THE BRAND'
-    fef = FEFset(frontend='bootstrap4', test=True)
-    fef.nav_menu.append({'name':'Home','url':'/test/blabla/yadayada'})
-    fef.init_app(app)
-    fef.nav_menu.append({'name':'Admin','url':'/test/yadayada/blabla'})
-    app.extensions['fefset'].add_menu_entry('Admin','/test/yadayada/blabla','Submenu')
-    @app.route('/')
-    def index():
-        return redirect('/front')
-    app.run(host='0.0.0.0')
+    def nav_menu_protected(self):
+        if self.role_protection:
+            from flask_login import current_user
+            nav_menu = [
+                {
+                    'name': nmi['name'], 'url': nmi['url'], 'role': nmi['role'],
+                    'nav_items': [
+                        snmi for snmi in nmi['nav_items']
+                        if (not snmi['role']) or
+                        (current_user.is_authenticated and current_user.role == snmi['role'])
+                    ]
+                } if 'nav_items' in nmi
+                else nmi
+                for nmi in self.nav_menu
+                if (not nmi['role']) or
+                (current_user.is_authenticated and current_user.role == nmi['role'])
+            ]
+        else: nav_menu = self.nav_menu
+        return nav_menu
 
+    def side_menu_protected(self):
+        if self.role_protection:
+            from flask_login import current_user
+            side_menu = [
+                smi for smi in self.side_menu
+                if (not smi['role']) or
+                (current_user.is_authenticated and current_user.role == smi['role'])
+            ]
+        else: side_menu = self.side_menu
+        return side_menu
