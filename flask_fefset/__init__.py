@@ -4,7 +4,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 class FEFset:
     def __init__(
         self, app=None, frontend='bootstrap4', url_prefix='/front',
-            include_footer=False, role_protection=False, test=False
+            include_footer=False, role_protection=True, test=False
     ):
         """
         App configuration keys that should be set:
@@ -92,12 +92,12 @@ class FEFset:
                     'name': nmi['name'], 'url': nmi['url'], 'role': nmi['role'],
                     'nav_items': [
                         snmi for snmi in nmi['nav_items']
-                        if (not snmi['role']) or check_user_role(snmi['role'])
+                        if check_user_role(snmi['role'])
                     ]
                 } if 'nav_items' in nmi
                 else nmi
                 for nmi in self.nav_menu
-                if (not nmi['role']) or check_user_role(nmi['role'])
+                if check_user_role(nmi['role'])
             ]
         else: nav_menu = self.nav_menu
         return nav_menu
@@ -107,7 +107,7 @@ class FEFset:
             from flask_iam.utils import check_user_role
             side_menu = [
                 smi for smi in self.side_menu
-                if (not smi['role']) or check_user_role(smi['role'])
+                if check_user_role(smi['role'])
             ]
         else: side_menu = self.side_menu
         return side_menu

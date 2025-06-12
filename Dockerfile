@@ -17,6 +17,7 @@ ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_DEBUG=true
 
 COPY --chown=app:app . .
+RUN git config --global --add safe.directory /app
 RUN pip install .[login,dev]
 
 EXPOSE 5000
